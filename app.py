@@ -26,7 +26,7 @@ options_tab = option_menu(None, ["Logs","Token Analysis", "Cost Analysis"],
 
 if options_tab == "Logs":
     try:
-        data = pd.read_csv("output.csv",header=None)
+        data = pd.read_csv("logs.csv",header=None)
         data.columns = ['Date', 'Time(24hr IST)','Query', 'Input_Tokens', 'Output_Tokens', 'Time_Taken' ,'LLM_output' ,'Overall_Output'] 
 
 
