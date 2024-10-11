@@ -14,7 +14,11 @@ st.set_page_config(
     page_title="Development PNG Logs",layout="wide")
 
 st.title("Development PNG Logs & Analysis")
-st.button("Click To refresh logs", on_click=get_logs)
+
+try:
+    st.button("Click To refresh logs", on_click=get_logs)
+except Exception as e:
+    st.error("Client not accessible")
 
 options_tab = option_menu(None, ["Logs","Token Analysis", "Cost Analysis"], 
     icons=['database-fill', 'clipboard-data-fill','coin'], 
