@@ -21,16 +21,19 @@ options_tab = option_menu(None, ["Logs","Token Analysis", "Cost Analysis"],
     menu_icon="cast", default_index=0, orientation="horizontal")
 
 if options_tab == "Logs":
-    
-    data = pd.read_csv("output.csv",header=None)
-    data.columns = ['Date', 'Time(24hr IST)','Query', 'Input_Tokens', 'Output_Tokens', 'Time_Taken' ,'LLM_output' ,'Overall_Output'] 
+    try:
+        data = pd.read_csv("output.csv",header=None)
+        data.columns = ['Date', 'Time(24hr IST)','Query', 'Input_Tokens', 'Output_Tokens', 'Time_Taken' ,'LLM_output' ,'Overall_Output'] 
 
 
-    # data['Datetime'] = pd.to_datetime(data['Date'] + ' ' + data['Time(24hr IST)'], format='%Y-%m-%d %H:%M')
+        # data['Datetime'] = pd.to_datetime(data['Date'] + ' ' + data['Time(24hr IST)'], format='%Y-%m-%d %H:%M')
 
-    st.session_state.data = data
+        st.session_state.data = data
 
-    st.dataframe(data.tail(10))
+        st.dataframe(data.tail(10))
+
+    except Exception as e:
+        st.error("Please refresh the logs")
 
 elif options_tab == "Token Analysis":
     if st.session_state.data is not None:
