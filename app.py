@@ -15,10 +15,18 @@ st.set_page_config(
 
 st.title("Development PNG Logs & Analysis")
 
-try:
-    st.button("Click To refresh logs", on_click=get_logs)
-except Exception as e:
-    st.error("Client not accessible")
+is_production = st.toggle("Click here to Analyse Production")
+
+if is_production:
+    try:
+        st.button("Click To refresh logs", on_click=get_logs,args=("prod",))
+    except Exception as e:
+        st.error("Client not accessible")
+else:
+    try:
+        st.button("Click To refresh logs", on_click=get_logs,args=("dev",))
+    except Exception as e:
+        st.error("Client not accessible")  
 
 options_tab = option_menu(None, ["Logs","Token Analysis", "Cost Analysis"], 
     icons=['database-fill', 'clipboard-data-fill','coin'], 
@@ -26,7 +34,11 @@ options_tab = option_menu(None, ["Logs","Token Analysis", "Cost Analysis"],
 
 if options_tab == "Logs":
     try:
-        data = pd.read_csv("logs.csv",header=None)
+        if is_production:
+            csv_data = "prod.csv"
+        else:
+            csv_data = "dev.csv"
+        data = pd.read_csv(csv_data,header=None)
         data.columns = ['Date', 'Time(24hr IST)','Query', 'Input_Tokens', 'Output_Tokens', 'Time_Taken' ,'LLM_output' ,'Overall_Output'] 
 
 
@@ -91,6 +103,29 @@ elif options_tab == "Token Analysis":
         st.info("Average Output Tokens used is {}".format(st.session_state.data['Output_Tokens'].mean()))
 
 
+        st.divider()
+        st.subheader("Day and month wise requests calclation")
+        daily_group = st.session_state.data.groupby('Date').size().reset_index(name='Daily_Count')
+
+        # Plot the bar chart using Plotly
+        fig = px.bar(daily_group, 
+                    x='Date', 
+                    y='Daily_Count', 
+                    title='Daily Log Count',
+                    labels={'Date': 'Date', 'Daily_Count': 'Number of Entries'},
+                    width=800, height=500)
+
+        # Update layout for better visualization
+        fig.update_layout(
+            margin=dict(l=0, r=0, t=30, b=0),
+            title_x=0.5,
+            xaxis_title="Date",
+            yaxis_title="Number of Entries",
+            legend_title="Daily Count"
+        )
+
+        # Display the chart in Streamlit
+        st.plotly_chart(fig)
 
 else:
     if st.session_state.data is not None:
