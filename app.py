@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
 import numpy as np
+from datetime import datetime
 
 if "data" not in st.session_state:
     st.session_state.data = None
@@ -54,7 +55,7 @@ if options_tab == "Logs":
             else:
                 data[new_col] = np.zeros(len(data), dtype=int)
 
-        data.columns = ["Query","Category_paths","PriceFrom","PriceTo","Keywords","TimeStamp","Input_Tokens","Output_Tokens","Time_Taken"] 
+        data.columns = ["Query","Category_paths","PriceFrom","PriceTo","Keywords","TimeStamp", "Time_Taken", "Input_Tokens","Output_Tokens"] 
 
         data["TimeStamp"] = pd.to_datetime(data["TimeStamp"])
         data['Date'], data['Time(24hr IST)'] = data['TimeStamp'].dt.date, data['TimeStamp'].dt.time
@@ -62,7 +63,16 @@ if options_tab == "Logs":
 
         st.session_state.data = data
 
+        now = datetime.now()
+
+        st.download_button(
+            label="Download logs as CSV",
+            data=data.to_csv(),
+            file_name=f'Logs downloaded on {now.strftime("%d-%m-%Y %H:%M")}.csv',
+            mime='text/csv')
+        
         st.dataframe(data.tail(10),use_container_width=True)
+
 
     except Exception as e:
         st.error(f"Please refresh the logs or The error might be {e}")
@@ -152,6 +162,8 @@ else:
         
         col1, col2, col3 = st.columns(3)
 
+        st.info("Price already entered For AWS Bedrock Mumbai Region for Mistral Model")
+
         with col1:
             cost_input = st.number_input("Enter your AWS Cost for input tokens per 1000 tokens in USD",value=0.00054, min_value=0.000001)
 
@@ -170,6 +182,7 @@ else:
                 if cost_input and cost_output:
                     st.session_state.data['Cost(USD)'] = st.session_state.data['Input_Tokens'] * (float(cost_input) / 1000) + st.session_state.data['Output_Tokens'] * (float(cost_output) / 1000)
         price_click = st.button("Click to calculate cost", on_click=calculate_cost, args=(cost_input, cost_output))
+
         # st.session_state.data =
         st.divider()
         
@@ -178,6 +191,9 @@ else:
         ############################## BAR LINE CHART FOR DATE WISE COST ############################
         if price_click:
             st.subheader("Date-wise Cost Default Cost of MIstral 8x7b In AWS Bedrock Mumbai region")
+            now = datetime.now()
+            st.download_button(
+                label="Download With Cost of API",data=st.session_state.data.to_csv(),file_name=f'Logs_with Cost downloaded on {now.strftime("%d-%m-%Y %H:%M")}.csv', mime='text/csv')
 
             if "Cost(INR)" in st.session_state.data.columns and "Cost(USD)" in st.session_state.data.columns:
                 total_cost_datewise_data = st.session_state.data.groupby('Date', as_index=False)[['Cost(INR)', 'Cost(USD)']].sum()
