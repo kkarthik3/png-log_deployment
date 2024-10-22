@@ -37,7 +37,7 @@ def get_logs(stage: str):
     
     if response.status_code == 200:
         # Write the content to a CSV file
-        file_name = f"{stage}.csv"
+        file_name = f"{stage}.json"
         with open(file_name, "wb") as f:
             f.write(response.content)
         print(f"CSV file downloaded successfully: {file_name}")
@@ -47,4 +47,4 @@ def get_logs(stage: str):
         print(f"Failed to retrieve the CSV file. Status code: {response.status_code}")
 
 if __name__ == "__main__":
-    get_logs("prod")
+    get_logs("dev")

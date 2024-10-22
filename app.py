@@ -5,6 +5,7 @@ from request_log import get_logs
 import matplotlib.pyplot as plt
 import seaborn as sns
 import plotly.express as px
+import numpy as np
 
 if "data" not in st.session_state:
     st.session_state.data = None
@@ -15,7 +16,7 @@ st.set_page_config(
 
 st.title("Development PNG Logs & Analysis")
 
-is_production = st.toggle("Click here to Analyse Production")
+is_production = st.toggle("Click here to Analyse Production Logs",value=True)
 
 if is_production:
     try:
@@ -35,21 +36,36 @@ options_tab = option_menu(None, ["Logs","Token Analysis", "Cost Analysis"],
 if options_tab == "Logs":
     try:
         if is_production:
-            csv_data = "prod.csv"
+            json_data = "prod.json"
         else:
-            csv_data = "dev.csv"
-        data = pd.read_csv(csv_data,header=None)
-        data.columns = ['Date', 'Time(24hr IST)','Query', 'Input_Tokens', 'Output_Tokens', 'Time_Taken' ,'LLM_output' ,'Overall_Output'] 
+            json_data = "dev.json"
+        data = pd.read_json(json_data)
+        # data.columns = ['Date', 'Time(24hr IST)','Query', 'Input_Tokens', 'Output_Tokens', 'Time_Taken' ,'LLM_output' ,'Overall_Output']
 
+        columns = {
+                        'input_tokens': 'Input_Tokens',
+                        'output_tokens': 'Output_Tokens',
+                        'time_taken': 'Time_Taken'
+                    }
+        
+        for old_col, new_col in columns.items():
+            if old_col in data.columns:
+                data.rename(columns={old_col: new_col}, inplace=True)
+            else:
+                data[new_col] = np.zeros(len(data), dtype=int)
 
-        # data['Datetime'] = pd.to_datetime(data['Date'] + ' ' + data['Time(24hr IST)'], format='%Y-%m-%d %H:%M')
+        data.columns = ["Query","Category_paths","PriceFrom","PriceTo","Keywords","TimeStamp","Input_Tokens","Output_Tokens","Time_Taken"] 
+
+        data["TimeStamp"] = pd.to_datetime(data["TimeStamp"])
+        data['Date'], data['Time(24hr IST)'] = data['TimeStamp'].dt.date, data['TimeStamp'].dt.time
+        data.drop('TimeStamp', axis=1, inplace=True)
 
         st.session_state.data = data
 
-        st.dataframe(data.tail(10))
+        st.dataframe(data.tail(10),use_container_width=True)
 
     except Exception as e:
-        st.error("Please refresh the logs")
+        st.error(f"Please refresh the logs or The error might be {e}")
 
 elif options_tab == "Token Analysis":
     if st.session_state.data is not None:
